@@ -87,7 +87,7 @@ class Apple(GameObject):
 
     def draw(self):
         """Отрисовка яблока для экрана."""
-        GameObject.draw_rect(
+        self.draw_rect(
             self.position, APPLE_COLOR
         )
 
@@ -114,10 +114,9 @@ class Snake(GameObject):
         """
         head_x, head_y = self.get_head_position()
         dir_x, dir_y = self.direction
-        new_head = (head_x + dir_x * GRID_SIZE, head_y + dir_y * GRID_SIZE)
         new_head = (
-            new_head[0] % SCREEN_WIDTH,
-            new_head[1] % SCREEN_HEIGHT
+            (head_x + dir_x * GRID_SIZE) % SCREEN_WIDTH,
+            (head_y + dir_y * GRID_SIZE) % SCREEN_HEIGHT
         )
 
         self.positions.insert(0, new_head)
@@ -129,14 +128,14 @@ class Snake(GameObject):
     def draw(self):
         """Отрисовывает змейку на экране, затирая след."""
         for position in self.positions[:]:
-            GameObject.draw_rect(position, self.body_color)
+            self.draw_rect(position, self.body_color)
 
         head_rect = self.get_head_position()
-        GameObject.draw_rect(head_rect, self.body_color)
+        self.draw_rect(head_rect, self.body_color)
 
         if self.last:
             last_rect = self.last
-            GameObject.draw_rect(last_rect, BOARD_BACKGROUND_COLOR)
+            self.draw_rect(last_rect, BOARD_BACKGROUND_COLOR)
 
     def get_head_position(self):
         """Возвращает позицию головы змейки."""
@@ -163,7 +162,7 @@ def handle_keys(game_object):
         elif event.type == pg.KEYDOWN:
             if event.key == pg.K_ESCAPE:
                 pg.quit()
-                exit
+                raise SystemExit
             elif event.key == pg.K_UP and game_object.direction != DOWN:
                 game_object.next_direction = UP
             elif event.key == pg.K_DOWN and game_object.direction != UP:
@@ -189,12 +188,8 @@ def main():
     apple = Apple()
     snake = Snake()
     running = True
-    score = 0
 
     while running:
-        for event in pg.event.get():
-            if event.type == pg.QUIT:
-                running = False
 
         clock.tick(SPEED)
         handle_keys(snake)
@@ -203,17 +198,15 @@ def main():
 
         if snake.get_head_position() == apple.position:
             snake.length += 1
-            score += 1
             apple.randomize_position(snake.positions)
 
         elif snake.get_head_position() in snake.positions[4:]:
             snake.reset()
-            score = 0
 
         screen.fill(BOARD_BACKGROUND_COLOR)
         apple.draw()
         snake.draw()
-        draw_text('Score: {}'.format(score), 10, 10, font)
+        draw_text('Score: {}'.format(snake.length - 1), 10, 10, font)
         draw_text('Press ESC to exit', 10, 50, font)
         pg.display.update()
 
